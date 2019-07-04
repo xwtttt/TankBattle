@@ -144,6 +144,20 @@ public class Client extends Frame implements ActionListener {
 		for (int i = 0; i < bullets.size(); i++) {
 			Bullets b = bullets.get(i);
 			b.draw(g);
+			for (int j = 0; j < homeWall.size(); j++) {
+				b.colliedWithCommonWall(homeWall.get(j));
+			}
+			for (int j = 0; j < otherWall.size(); j++) {
+				b.colliedWithCommonWall(otherWall.get(j));
+			}
+			for (int j = 0; j < metalWalls.size(); j++) {
+				b.colliedWithMetalWall(metalWalls.get(j));
+			}
+			b.colliedWithBullets(bullets);
+			b.colliedWithTank(homeTank);
+			for (int j = 0; j < enemyTank.size(); j++) {
+				b.colliedWithTank(enemyTank.get(j));
+			}
 		}
 	}
 

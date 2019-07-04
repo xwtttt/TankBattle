@@ -40,6 +40,12 @@ public class Tank {
 	}
 
 	public void draw(Graphics g) {
+		if(good){
+			if(!live){
+				//游戏结束
+				return;
+			}
+		}
 		// 定义敌方坦克方向
 		if (!good) {
 			if (n == 0) {
@@ -49,6 +55,10 @@ public class Tank {
 				n = (int) (Math.random() * 10) + 5;
 			}
 			n--;
+			if((int)(Math.random()*40) > 38){
+				fire();
+				
+			}
 		}
 		switch (direction) {
 		case L:
@@ -126,7 +136,9 @@ public class Tank {
 			bD = true;
 			break;
 		case KeyEvent.VK_J:
-			fire();
+			if(live){
+				fire();
+			}
 			break;
 		}
 		decideDirection();
@@ -225,5 +237,29 @@ public class Tank {
 
 	public Rectangle getRect() {
 		return new Rectangle(x, y, WIDTH, LENGTH);
+	}
+
+	public boolean isGood() {
+		return good;
+	}
+
+	public void setGood(boolean good) {
+		this.good = good;
+	}
+
+	public int getLife() {
+		return life;
+	}
+
+	public void setLife(int life) {
+		this.life = life;
+	}
+
+	public boolean isLive() {
+		return live;
+	}
+
+	public void setLive(boolean live) {
+		this.live = live;
 	}
 }
