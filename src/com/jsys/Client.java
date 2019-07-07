@@ -2,6 +2,7 @@ package com.jsys;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -16,7 +17,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.JOptionPane;
 
 public class Client extends Frame implements ActionListener {
 
@@ -40,6 +44,7 @@ public class Client extends Frame implements ActionListener {
 	MenuItem jmi1, jmi2, jmi3, jmi4, jmi5, jmi6, jmi7, jmi8, jmi9 = null;
 
 	public boolean printable = true;
+	public boolean bombable = true;
 	// 定义画布
 	Image screenImage = null;
 	// 定义树
@@ -60,6 +65,15 @@ public class Client extends Frame implements ActionListener {
 	List<Tank> enemyTank = new ArrayList<Tank>();
 	// 定义子弹集合
 	List<Bullets> bullets = new ArrayList<Bullets>();
+	// 定义爆炸坦克的集合
+	List<BombTank> bombTanks = new ArrayList<BombTank>();
+	// 定义炸弹
+	Bomb bomb = null;
+	// 定义护盾
+	HuDun hudun = null;
+	int n = 100;
+	
+	int level = 50;
 
 	// main函数
 	public static void main(String args[]) {
@@ -74,21 +88,33 @@ public class Client extends Frame implements ActionListener {
 		framePaint(gps);
 		// 每次将画布覆盖Frame框，达到刷新效果
 		g.drawImage(screenImage, 0, 0, null);
+
 	}
 
 	// 绘制地图信息
 	private void framePaint(Graphics g) {
+		// 判断游戏输赢
+		// 1.赢
+		if (homeTank.isLive() && home.isLive() && enemyTank.size() == 0) {
+			// 赢了,清空页面残留子弹，其他砖块，并提升用户过关
+			this.bullets.clear();
+			this.otherWall.clear();
+			g.setColor(Color.red);
+			g.setFont(new Font("TimesToman", Font.BOLD, 40));
+			g.drawString("恭喜过关", 500, 300);
+		}
+		// 2.输
+		if (!homeTank.isGood() || !home.isLive() || !homeTank.isLive()) {
+			// 输了
+			this.otherWall.clear();
+			this.homeWall.clear();
+			g.setColor(Color.red);
+			g.setFont(new Font("TimesToman", Font.BOLD, 40));
+			g.drawString("你输了", 700, 300);
+		}
+
 		// 绘制河
 		river.draw(g);
-
-		// 绘制金属墙
-		for (int i = 0; i < metalWalls.size(); i++) {
-			metalWalls.get(i).draw(g);
-			homeTank.colliedWithMetalWall(metalWalls.get(i));
-			for (int j = 0; j < enemyTank.size(); j++) {
-				enemyTank.get(j).colliedWithMetalWall(metalWalls.get(i));
-			}
-		}
 
 		// 绘制其他普通墙
 		for (int i = 0; i < otherWall.size(); i++) {
@@ -100,6 +126,14 @@ public class Client extends Frame implements ActionListener {
 		}
 		// 绘制家
 		home.draw(g);
+
+		// 绘制爆炸
+		bomb.draw(g);
+
+		// 绘制护盾
+		hudun.draw(g);
+
+		hudun.colliedWithHuDun(homeTank, homeWall);
 
 		// 绘制家的墙
 		for (int i = 0; i < homeWall.size(); i++) {
@@ -116,11 +150,9 @@ public class Client extends Frame implements ActionListener {
 		homeTank.colliedWithRiver(river);
 		// 绘制我防坦克和家的碰撞
 		homeTank.colliedWithHome(home);
+		// 我方坦克和bomb碰撞
+		bomb.colliedWithBomb(homeTank, enemyTank);
 
-		// 绘制树
-		for (int i = 0; i < trees.size(); i++) {
-			trees.get(i).draw(g);
-		}
 		// 绘制敌方坦克
 		for (int i = 0; i < enemyTank.size(); i++) {
 			enemyTank.get(i).draw(g);
@@ -155,10 +187,45 @@ public class Client extends Frame implements ActionListener {
 			}
 			b.colliedWithBullets(bullets);
 			b.colliedWithTank(homeTank);
+			b.colliedWithHome(home);
 			for (int j = 0; j < enemyTank.size(); j++) {
 				b.colliedWithTank(enemyTank.get(j));
 			}
 		}
+		// 定义爆炸坦克的集合
+		for (int i = 0; i < bombTanks.size(); i++) {
+			bombTanks.get(i).draw(g);
+		}
+
+		// 绘制树
+		for (int i = 0; i < trees.size(); i++) {
+			trees.get(i).draw(g);
+		}
+		// 绘制金属墙
+		for (int i = 0; i < metalWalls.size(); i++) {
+			metalWalls.get(i).draw(g);
+			homeTank.colliedWithMetalWall(metalWalls.get(i));
+			for (int j = 0; j < enemyTank.size(); j++) {
+				enemyTank.get(j).colliedWithMetalWall(metalWalls.get(i));
+			}
+		}
+
+		// 绘制剩余敌方坦克的数量以及我方坦克的生命值
+		g.setColor(Color.green);
+		g.setFont(new Font("TimesToman", Font.BOLD, 40));
+		g.drawString("剩余敌方坦克：" + enemyTank.size(), 300, 150);
+		g.drawString("生命值：" + homeTank.getLife(), 1300, 150);
+
+		if (hudun.isLive() == false) {
+			n--;
+		}
+
+		if (n < 0 && metalWalls.size() >= 40) {
+			for (int i = 0; i < 12; i++) {
+				metalWalls.remove(metalWalls.size() - 1);
+			}
+		}
+
 	}
 
 	// 开启线程，调用repaint()
@@ -169,7 +236,7 @@ public class Client extends Frame implements ActionListener {
 			while (printable) {
 				repaint();
 				try {
-					Thread.sleep(20);
+					Thread.sleep(level);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -180,7 +247,52 @@ public class Client extends Frame implements ActionListener {
 	// 按钮监听
 	@Override
 	public void actionPerformed(ActionEvent e) {
-
+		if (e.getActionCommand().equals("Begin")) {
+			System.out.println("Begin");
+			printable = false;
+			Object[] options = { "确定","取消"};
+			int response = JOptionPane.showOptionDialog(this, "确定重新开始？", "判断", JOptionPane.YES_OPTION,
+					JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			if(response == 0){
+				printable = true;
+				this.dispose();
+				new Client();
+			}else{
+				printable = true;
+				new Thread(new PaintThread()).start();
+			}
+		} else if (e.getActionCommand().equals("Exit")) {
+			System.out.println("Exit");
+			printable = false;
+			Object[] options = {"确定","取消"};
+			int response = JOptionPane.showOptionDialog(this, "确定退出？", "判断", JOptionPane.YES_OPTION,
+					JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			if(response == 0){
+				System.exit(0);
+			}else{
+				printable = true;
+				new Thread(new PaintThread()).start(); 
+			}
+		} else if (e.getActionCommand().equals("Stop")) {
+			printable = false;
+		} else if (e.getActionCommand().equals("Continue")) {
+			printable = true;
+			new Thread(new PaintThread()).start();
+		} else if (e.getActionCommand().equals("Level1")) {
+			this.level = 50;
+		} else if (e.getActionCommand().equals("Level2")) {
+			this.level = 40;
+		} else if (e.getActionCommand().equals("Level3")) {
+			this.level = 30;
+		} else if (e.getActionCommand().equals("Level4")) {
+			this.level = 20;
+		} else if (e.getActionCommand().equals("Help")) {
+			System.out.println("Help");
+			printable = false;
+			JOptionPane.showMessageDialog(null, "用 A、W、S、D控制方向，用J发射子弹", "提示", JOptionPane.INFORMATION_MESSAGE);
+			printable = true;
+			new Thread(new PaintThread()).start();
+		}
 	}
 
 	public Client() {
@@ -254,6 +366,10 @@ public class Client extends Frame implements ActionListener {
 		jm3.add(jmi8);
 		jmb.add(jm4);
 		jm4.add(jmi9);
+		// 第一次先执行一遍坦克爆炸
+		BombTank bt = new BombTank(-100, -100, this);
+		bombTanks.add(bt);
+
 		this.setMenuBar(jmb);
 		// 添加键盘监听事件
 		this.addKeyListener(new KeyMonitor());
@@ -272,6 +388,7 @@ public class Client extends Frame implements ActionListener {
 		for (int i = 0; i < 10; i++) {
 			metalWalls.add(new MetalWall(300 + i * (30), 200));
 			metalWalls.add(new MetalWall(300 + i * (30), 230));
+
 		}
 		for (int i = 0; i < 10; i++) {
 			metalWalls.add(new MetalWall(1200, FRAME_HEIGHT - i * (30)));
@@ -311,6 +428,10 @@ public class Client extends Frame implements ActionListener {
 				enemyTank.add(new Tank(1550, (i - 14) * 50 + 300, Direction.D, false, this));
 			}
 		}
+		// 初始化bomb炸弹
+		bomb = new Bomb((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
+		// 初始化护盾
+		hudun = new HuDun((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
 	}
 
 	// 键盘监听事件

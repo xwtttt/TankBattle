@@ -20,5 +20,4 @@ public class Tree {
 		this.x = x;
 		this.y = y;
 	}
-	
 }

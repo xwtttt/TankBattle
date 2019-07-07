@@ -39,6 +39,22 @@ public class Tank {
 		this.c = c;
 	}
 
+	public int getX() {
+		return x;
+	}
+
+	public void setX(int x) {
+		this.x = x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public void setY(int y) {
+		this.y = y;
+	}
+
 	public void draw(Graphics g) {
 		if(good){
 			if(!live){
@@ -48,6 +64,9 @@ public class Tank {
 		}
 		// 定义敌方坦克方向
 		if (!good) {
+			if(!live){
+				this.c.enemyTank.remove(this);
+			}
 			if (n == 0) {
 				Direction[] directions = Direction.values();
 				int rn = (int) (Math.random() * 4);
@@ -145,7 +164,6 @@ public class Tank {
 	}
 
 	private void decideDirection() {
-		// TODO Auto-generated method stub
 		if (bL && !bU && !bR && !bD) {
 			direction = Direction.L;
 			oldDirection = direction;
@@ -184,7 +202,6 @@ public class Tank {
 	}
 
 	private void fire() {
-		// TODO Auto-generated method stub
 		int x = this.x + WIDTH / 2 - Bullets.WIDTH / 2;
 		int y = this.y + LENGTH / 2 - Bullets.HEIGHT / 2;
 		Direction dir = this.direction;
@@ -220,6 +237,7 @@ public class Tank {
 	public void colliedWithHome(Home ho) {
 		if (this.getRect().intersects(ho.getRect())) {
 			changeToOldDirection();
+			
 		}
 	}
 
@@ -227,8 +245,11 @@ public class Tank {
 	public void colliedWithTank(Tank tank) {
 		if (this.getRect().intersects(tank.getRect())) {
 			changeToOldDirection();
+			
 		}
 	}
+	
+	
 
 	private void changeToOldDirection() {
 		x = oldX;
