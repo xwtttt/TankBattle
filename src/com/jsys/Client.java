@@ -17,7 +17,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -71,6 +70,8 @@ public class Client extends Frame implements ActionListener {
 	Bomb bomb = null;
 	// 定义护盾
 	HuDun hudun = null;
+	//定义回血图片
+	Blood blood = null;
 	int n = 100;
 	
 	int level = 50;
@@ -132,6 +133,9 @@ public class Client extends Frame implements ActionListener {
 
 		// 绘制护盾
 		hudun.draw(g);
+		
+		// 绘制回血
+		blood.draw(g);
 
 		hudun.colliedWithHuDun(homeTank, homeWall);
 
@@ -152,6 +156,8 @@ public class Client extends Frame implements ActionListener {
 		homeTank.colliedWithHome(home);
 		// 我方坦克和bomb碰撞
 		bomb.colliedWithBomb(homeTank, enemyTank);
+		// 我方坦克和血碰撞
+		blood.colliedWithBlood(homeTank);
 
 		// 绘制敌方坦克
 		for (int i = 0; i < enemyTank.size(); i++) {
@@ -432,6 +438,8 @@ public class Client extends Frame implements ActionListener {
 		bomb = new Bomb((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
 		// 初始化护盾
 		hudun = new HuDun((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
+		//初始化回血
+		blood = new Blood((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
 	}
 
 	// 键盘监听事件
