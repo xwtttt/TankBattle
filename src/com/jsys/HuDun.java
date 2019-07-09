@@ -46,7 +46,6 @@ public class HuDun {
 
 	public void colliedWithHuDun(Tank tk, List<CommonWall> cm) {
 		if (this.live && this.getRect().intersects(tk.getRect()) && this.changeToMental == false) {
-			System.out.println("111");
 			this.live = false;
 			this.changeToMental = true;
 			for (int i = 0; i < 4; i++) {

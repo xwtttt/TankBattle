@@ -205,7 +205,7 @@ public class Tank {
 		int x = this.x + WIDTH / 2 - Bullets.WIDTH / 2;
 		int y = this.y + LENGTH / 2 - Bullets.HEIGHT / 2;
 		Direction dir = this.direction;
-		if(this.direction == Direction.STOP){
+		if (this.direction == Direction.STOP) {
 			dir = oldDirection;
 		}
 		boolean good = this.good;

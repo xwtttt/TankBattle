@@ -37,9 +37,13 @@ public class Bomb{
 	// Ì¹¿ËÅöµ½±¬Õ¨
 	public void colliedWithBomb(Tank tk, List<Tank> tanks) {
 		if (this.live && this.getRect().intersects(tk.getRect())) {
-			for (int j = 0; j < 2; j++) {
-				int n = tanks.size() - 1;
-				tanks.remove(n);
+			if(tanks.size() >= 1){
+				for (int j = 0; j < 2; j++) {
+					int n = tanks.size() - 1;
+					tanks.remove(n);
+				}
+			}else{
+				tanks.remove(0);
 			}
 			this.live = false;
 

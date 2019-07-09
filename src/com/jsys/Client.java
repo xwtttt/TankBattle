@@ -70,11 +70,13 @@ public class Client extends Frame implements ActionListener {
 	Bomb bomb = null;
 	// 定义护盾
 	HuDun hudun = null;
-	//定义回血图片
+	// 定义回血图片
 	Blood blood = null;
-	int n = 100;
-	
-	int level = 50;
+	// 定义星星
+	Star star = null;
+	int n = 200;
+
+	int level = 30;
 
 	// main函数
 	public static void main(String args[]) {
@@ -100,9 +102,12 @@ public class Client extends Frame implements ActionListener {
 			// 赢了,清空页面残留子弹，其他砖块，并提升用户过关
 			this.bullets.clear();
 			this.otherWall.clear();
+			this.homeWall.clear();
+			this.metalWalls.clear();
+			this.trees.clear();
 			g.setColor(Color.red);
 			g.setFont(new Font("TimesToman", Font.BOLD, 40));
-			g.drawString("恭喜过关", 500, 300);
+			g.drawString("恭喜过关", 700, 300);
 		}
 		// 2.输
 		if (!homeTank.isGood() || !home.isLive() || !homeTank.isLive()) {
@@ -133,9 +138,12 @@ public class Client extends Frame implements ActionListener {
 
 		// 绘制护盾
 		hudun.draw(g);
-		
+
 		// 绘制回血
 		blood.draw(g);
+
+		// 绘制星星
+		star.draw(g);
 
 		hudun.colliedWithHuDun(homeTank, homeWall);
 
@@ -158,6 +166,8 @@ public class Client extends Frame implements ActionListener {
 		bomb.colliedWithBomb(homeTank, enemyTank);
 		// 我方坦克和血碰撞
 		blood.colliedWithBlood(homeTank);
+		// 我方坦克和星星碰撞
+		star.colliedWithStar(homeTank);
 
 		// 绘制敌方坦克
 		for (int i = 0; i < enemyTank.size(); i++) {
@@ -183,13 +193,15 @@ public class Client extends Frame implements ActionListener {
 			Bullets b = bullets.get(i);
 			b.draw(g);
 			for (int j = 0; j < homeWall.size(); j++) {
-				b.colliedWithCommonWall(homeWall.get(j));
+				if(metalWalls.size() == 40){					
+					b.colliedWithCommonWall(homeWall.get(j));
+				}
 			}
 			for (int j = 0; j < otherWall.size(); j++) {
 				b.colliedWithCommonWall(otherWall.get(j));
 			}
 			for (int j = 0; j < metalWalls.size(); j++) {
-				b.colliedWithMetalWall(metalWalls.get(j));
+				b.colliedWithMetalWall(metalWalls.get(j), bullets);
 			}
 			b.colliedWithBullets(bullets);
 			b.colliedWithTank(homeTank);
@@ -217,7 +229,7 @@ public class Client extends Frame implements ActionListener {
 		}
 
 		// 绘制剩余敌方坦克的数量以及我方坦克的生命值
-		g.setColor(Color.green);
+		g.setColor(Color.green); 
 		g.setFont(new Font("TimesToman", Font.BOLD, 40));
 		g.drawString("剩余敌方坦克：" + enemyTank.size(), 300, 150);
 		g.drawString("生命值：" + homeTank.getLife(), 1300, 150);
@@ -226,12 +238,14 @@ public class Client extends Frame implements ActionListener {
 			n--;
 		}
 
-		if (n < 0 && metalWalls.size() >= 40) {
-			for (int i = 0; i < 12; i++) {
+		if (n < 0 && metalWalls.size() > 40) {
 				metalWalls.remove(metalWalls.size() - 1);
-			}
+				for (int i = 0; i < 4; i++) {
+					homeWall.add(new CommonWall(755, 795 + i * 30));
+					homeWall.add(new CommonWall(865, 795 + i * 30));
+					homeWall.add(new CommonWall(770 + i * 30, 795));
+				}
 		}
-
 	}
 
 	// 开启线程，调用repaint()
@@ -254,30 +268,29 @@ public class Client extends Frame implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("Begin")) {
-			System.out.println("Begin");
 			printable = false;
-			Object[] options = { "确定","取消"};
+			Object[] options = { "确定", "取消" };
 			int response = JOptionPane.showOptionDialog(this, "确定重新开始？", "判断", JOptionPane.YES_OPTION,
 					JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-			if(response == 0){
+			if (response == 0) {
 				printable = true;
 				this.dispose();
 				new Client();
-			}else{
+			} else {
 				printable = true;
 				new Thread(new PaintThread()).start();
 			}
 		} else if (e.getActionCommand().equals("Exit")) {
 			System.out.println("Exit");
 			printable = false;
-			Object[] options = {"确定","取消"};
+			Object[] options = { "确定", "取消" };
 			int response = JOptionPane.showOptionDialog(this, "确定退出？", "判断", JOptionPane.YES_OPTION,
 					JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-			if(response == 0){
+			if (response == 0) {
 				System.exit(0);
-			}else{
+			} else {
 				printable = true;
-				new Thread(new PaintThread()).start(); 
+				new Thread(new PaintThread()).start();
 			}
 		} else if (e.getActionCommand().equals("Stop")) {
 			printable = false;
@@ -311,7 +324,7 @@ public class Client extends Frame implements ActionListener {
 		// 设置窗口位置居中
 		this.setLocation(screenWidth / 2 - FRAME_WIDTH / 2, screenHeight / 2 - FRAME_HEIGHT / 2);
 		// 设置背景颜色
-		this.setBackground(Color.gray);
+		this.setBackground(new Color(142,53,74));
 		// 设置标题
 		this.setTitle("坦克大战");
 		// 设置窗口关闭模式
@@ -326,8 +339,6 @@ public class Client extends Frame implements ActionListener {
 		jm1 = new Menu("游戏");
 		jmi1 = new MenuItem("开始新游戏");
 		jmi2 = new MenuItem("退出");
-		// jmi1.setFont(new Font("TimesRoman",Font.BOLD,15));
-		// jmi2.setFont(new Font("TimesRoman",Font.BOLD,15));
 		jm2 = new Menu("暂停/继续");
 		jmi3 = new MenuItem("暂停");
 		jmi4 = new MenuItem("继续");
@@ -372,6 +383,7 @@ public class Client extends Frame implements ActionListener {
 		jm3.add(jmi8);
 		jmb.add(jm4);
 		jm4.add(jmi9);
+		
 		// 第一次先执行一遍坦克爆炸
 		BombTank bt = new BombTank(-100, -100, this);
 		bombTanks.add(bt);
@@ -438,14 +450,22 @@ public class Client extends Frame implements ActionListener {
 		bomb = new Bomb((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
 		// 初始化护盾
 		hudun = new HuDun((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
-		//初始化回血
+		// 初始化回血
 		blood = new Blood((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
+		// 初始化星星
+		star = new Star((int) (Math.random() * 1550), 50 + (int) (Math.random() * 800), this);
 	}
 
 	// 键盘监听事件
 	private class KeyMonitor extends KeyAdapter {
 		public void keyPressed(KeyEvent e) {
 			homeTank.keyPressed(e);
+			if(e.getKeyCode() == KeyEvent.VK_R){
+				dispose();
+				new Client();
+			}else if(e.getKeyCode() == KeyEvent.VK_U){
+				enemyTank.clear();
+			}
 		}
 
 		public void keyReleased(KeyEvent e) {

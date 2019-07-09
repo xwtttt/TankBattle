@@ -14,13 +14,12 @@ public class Bullets {
 	private int speedX = 20;
 	private int speedY = 20;
 	private boolean good;
-	//private boolean live;
+	// private boolean live;
 	private static Image[] images = null;
 	private static Toolkit tk = Toolkit.getDefaultToolkit();
 	private Client c;
 	static {
-		images = new Image[] { 
-				tk.getImage(Bullets.class.getResource("../../Images/bulletL.gif")),
+		images = new Image[] { tk.getImage(Bullets.class.getResource("../../Images/bulletL.gif")),
 				tk.getImage(Bullets.class.getResource("../../Images/bulletU.gif")),
 				tk.getImage(Bullets.class.getResource("../../Images/bulletR.gif")),
 				tk.getImage(Bullets.class.getResource("../../Images/bulletD.gif")) };
@@ -44,13 +43,13 @@ public class Bullets {
 			g.drawImage(images[0], x, y, WIDTH, HEIGHT, null);
 			break;
 		case U:
-			g.drawImage(images[1], x, y, 2*WIDTH, HEIGHT, null);
+			g.drawImage(images[1], x, y, 2 * WIDTH, HEIGHT, null);
 			break;
 		case R:
 			g.drawImage(images[2], x, y, WIDTH, HEIGHT, null);
 			break;
 		case D:
-			g.drawImage(images[3], x, y, 2*WIDTH, HEIGHT, null);
+			g.drawImage(images[3], x, y, 2 * WIDTH, HEIGHT, null);
 			break;
 		default:
 			break;
@@ -92,9 +91,19 @@ public class Bullets {
 		}
 	}
 
+	public boolean isGood() {
+		return good;
+	}
+
+	public void setGood(boolean good) {
+		this.good = good;
+	}
+
 	// 子弹碰到铁墙
-	public void colliedWithMetalWall(MetalWall mw) {
-		if (this.getRect().intersects(mw.getRect())) {
+	public void colliedWithMetalWall(MetalWall mw, List<Bullets> bullets) {
+		if (this.c.star.isLive() == false && this.good) {
+			return;
+		} else if (this.getRect().intersects(mw.getRect())) {
 			this.c.bullets.remove(this);
 		}
 	}
@@ -109,28 +118,30 @@ public class Bullets {
 			}
 		}
 	}
-	//子弹碰到敌方
-	public void colliedWithTank(Tank tk){
-		if((tk.isLive()) && (this.good != tk.isGood()) && (this.getRect().intersects(tk.getRect()))){
-			BombTank bt = new BombTank(tk.getX(),tk.getY(),this.c);
+
+	// 子弹碰到敌方
+	public void colliedWithTank(Tank tk) {
+		if ((tk.isLive()) && (this.good != tk.isGood()) && (this.getRect().intersects(tk.getRect()))) {
+			BombTank bt = new BombTank(tk.getX(), tk.getY(), this.c);
 			this.c.bombTanks.add(bt);
-			if(!tk.isGood()){
-				//我方坦克击中敌方坦克
+			if (!tk.isGood()) {
+				// 我方坦克击中敌方坦克
 				this.c.bullets.remove(this);
 				this.c.enemyTank.remove(tk);
-			}else{
+			} else {
 				this.c.bullets.remove(this);
 				tk.setLife(tk.getLife() - 50);
-				if(tk.getLife() <= 0){
+				if (tk.getLife() <= 0) {
 					tk.setLive(false);
 				}
 			}
 		}
 	}
-	public void colliedWithHome(Home home){
-		if((home.isLive()) && this.getRect().intersects(home.getRect())){
-			//游戏结束
-			BombTank bt = new BombTank(home.getX(),home.getY(),this.c);
+
+	public void colliedWithHome(Home home) {
+		if ((home.isLive()) && this.getRect().intersects(home.getRect())) {
+			// 游戏结束
+			BombTank bt = new BombTank(home.getX(), home.getY(), this.c);
 			this.c.bombTanks.add(bt);
 			home.setLive(false);
 			this.c.homeTank.setLive(false);
